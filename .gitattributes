@@ -1,0 +1,9 @@
+# 工作区保持 LF，不跟着全局 core.autocrlf=true 改成 CRLF ——
+# 棋谱解析、日志、开局库都是按 \n 切行的。
+* text=auto eol=lf
+*.bat text eol=crlf
+
+*.exe binary
+*.bin binary
+*.lz4 binary
+*.zip binary

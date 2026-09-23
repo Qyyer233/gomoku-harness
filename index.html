@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>gomoku-harness · 五子棋</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app">
+
+  <main class="boardWrap">
+    <canvas id="board" width="720" height="720"></canvas>
+  </main>
+
+  <aside class="panel">
+
+    <!-- 开局：一键决定谁先走，不必再想自己执什么颜色 -->
+    <section class="start" id="secStart">
+      <div class="row">
+        <button id="btnAiFirst" class="btn primary">我方先走</button>
+        <button id="btnOppFirst" class="btn primary">对手先走</button>
+      </div>
+      <div id="seatInfo" class="seatInfo">AI 执黑 · 开局即落天元</div>
+      <!-- 最后一手的准星颜色图例：对局时最常问的就是「AI 刚才走的是哪个」 -->
+      <div class="legend">
+        <span><i class="mk ai"></i>AI 最后一手</span>
+        <span><i class="mk opp"></i>对手最后一手</span>
+      </div>
+    </section>
+
+    <!-- 摆局模式的操作条。平时隐藏；进摆局后顶到棋盘正下方，
+         手机上手指够得着的地方。 -->
+    <section class="controls setupBar" id="secSetup" hidden>
+      <div class="setupHint">
+        点棋盘摆子：<b>黑 → 白 → 黑 …</b> 交替。摆好后选下面一个
+      </div>
+      <div class="setupTurn" id="setupTurn">下一子：黑</div>
+      <div class="row">
+        <button id="btnSetupDone" class="btn primary">摆好了 · AI 走这手</button>
+      </div>
+      <div class="row">
+        <button id="btnSetupWait" class="btn">摆好了 · 等对手</button>
+        <button id="btnSetupBack" class="btn">退一子</button>
+        <button id="btnSetupCancel" class="btn">取消</button>
+      </div>
+    </section>
+
+    <!-- AI 的着法：大字显示，一眼就能看清 -->
+    <section class="answer" id="secAnswer">
+      <div class="answerHead">AI 的着法</div>
+      <div id="aiMove" class="aiMove">—</div>
+      <div id="aiMeta" class="aiMeta">等待开局</div>
+      <div id="resultBar" class="resultBar" hidden></div>
+    </section>
+
+    <!-- 思考开关。真实棋局里下错了子要回退好几手重摆，而时间还在走 ——
+         暂停之后棋盘随便改（点棋盘 / 悔棋 / 翻手 / 整局导入都行），引擎一动不动，
+         摆到真实局面再点开始。手机上这是最常按的东西，所以独占一条、顶在棋盘正下方。 -->
+    <section class="controls" id="secPause">
+      <div class="row">
+        <button id="btnPause" class="btn wide">⏸ 暂停思考（改棋盘）</button>
+      </div>
+    </section>
+
+    <!-- 录入：对手走完就打进来 -->
+    <section class="controls" id="secEntry">
+      <label class="entry">
+        <span>对手</span>
+        <input id="inpMove" type="text" autocomplete="off" spellcheck="false"
+               placeholder="如 h8 回车">
+      </label>
+      <div id="entryHint" class="entryHint">对手落子后，在这里输入坐标回车</div>
+      <div class="row">
+        <button id="btnUndo" class="btn">悔棋</button>
+        <button id="btnPlay" class="btn">让 AI 走这手</button>
+      </div>
+    </section>
+
+    <section class="controls">
+      <label class="field">
+        <span>棋盘</span>
+        <select id="selSize">
+          <option value="12">12 路（有开局库）</option>
+          <option value="13">13 路</option>
+          <option value="14">14 路</option>
+          <option value="15" selected>15 路（有开局库）</option>
+          <option value="16">16 路</option>
+          <option value="17">17 路</option>
+          <option value="18">18 路</option>
+          <option value="19">19 路</option>
+          <option value="20">20 路</option>
+          <option value="21">21 路</option>
+          <option value="22">22 路</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>规则</span>
+        <select id="selRule">
+          <option value="0" selected>无禁手 · 自由（默认）</option>
+          <option value="1">标准 · 恰好五子</option>
+          <option value="4">有禁手 · 连珠</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>思考上限</span>
+        <select id="selThink">
+          <option value="3000">3 秒</option>
+          <option value="6000" selected>6 秒（适配 15 秒快棋）</option>
+          <option value="10000">10 秒</option>
+          <option value="20000">20 秒</option>
+          <option value="60000">60 秒</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>用时风格</span>
+        <select id="selPace">
+          <option value="7">快 · 简单局面秒答</option>
+          <option value="21" selected>均衡 · 推荐</option>
+          <option value="0">充分 · 每手都想满</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>对弈内核</span>
+        <select id="selEngine">
+          <option value="rapfi" selected>Rapfi · 最强</option>
+          <option value="js">自研 JS 引擎</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>难度</span>
+        <select id="selLevel">
+          <option value="easy">入门 · 会放水</option>
+          <option value="normal">普通 · 瞬间出手</option>
+          <option value="hard">困难</option>
+          <option value="master" selected>大师 · 最强</option>
+        </select>
+      </label>
+      <div class="turnRow">
+        <span id="turnDot" class="dot black"></span>
+        <span id="turnText">轮到黑棋</span>
+      </div>
+      <div class="meters">
+        <div class="meter"><span id="mTime">0</span><i>毫秒</i></div>
+        <div class="meter"><span id="mNodes">0</span><i>搜索节点</i></div>
+        <div class="meter"><span id="mSource">—</span><i>决策来源</i></div>
+      </div>
+    </section>
+
+    <section class="review" id="secReview">
+      <div class="recHead">
+        <h2>棋谱 / 复盘</h2>
+        <span class="spacer"></span>
+        <button id="btnCopy" class="link">复制</button>
+        <button id="btnLogs" class="link" title="导出对局日志（棋谱 + AI 思维链），用于改进算法">导出日志</button>
+        <span id="logInfo" class="logInfo">日志检测中…</span>
+      </div>
+      <div class="navRow">
+        <button id="navFirst" class="navBtn" title="回到开局">⏮</button>
+        <button id="navPrev" class="navBtn" title="上一手">◀</button>
+        <span id="navPos" class="navPos">0 / 0</span>
+        <button id="navNext" class="navBtn" title="下一手">▶</button>
+        <button id="navLast" class="navBtn" title="到最新">⏭</button>
+      </div>
+      <ol id="moveList" class="moveList"></ol>
+      <label class="entry">
+        <span>导入</span>
+        <input id="inpLoad" type="text" autocomplete="off" spellcheck="false"
+               placeholder="粘贴整局棋谱 H8 I9 J10 …">
+      </label>
+    </section>
+
+    <!-- 自定义摆局：清盘重摆一个外部局面。用得少，手机上排在最后。 -->
+    <section class="controls" id="secExtra">
+      <div class="row">
+        <button id="btnSetup" class="btn wide">自定义摆局（清盘重摆）</button>
+      </div>
+    </section>
+
+    <section class="controls">
+      <label class="check">
+        <input type="checkbox" id="chkAuto" checked>
+        <span>自动应手<i>关掉后 AI 只在点「让 AI 走这手」时落子</i></span>
+      </label>
+      <label class="check">
+        <input type="checkbox" id="chkBook" checked>
+        <span>使用开局库<i id="bookInfo">未加载</i></span>
+      </label>
+      <label class="check">
+        <input type="checkbox" id="chkNum">
+        <span>显示手数</span>
+      </label>
+      <label class="check">
+        <input type="checkbox" id="chkSwindle" checked>
+        <span>绝境搏命<i>算出必输时，把剩下的时间用来挑一手最难被走对的防守</i></span>
+      </label>
+      <label class="check">
+        <input type="checkbox" id="chkPonder" checked>
+        <span>超前思考<i id="ponderInfo">趁你录入对手着法时，把我们的应手提前算好</i></span>
+      </label>
+      <label class="field">
+        <span>超前思考强度</span>
+        <select id="selPrep">
+          <option value="1">轻 · 只备对手最可能的 1 手</option>
+          <option value="3">标准 · 备前 3 手</option>
+          <option value="5" selected>深 · 备前 5 手（默认）</option>
+          <option value="7">很深 · 备前 7 手（对手想得久才划算）</option>
+        </select>
+      </label>
+      <p class="foot" id="engineNote"></p>
+      <p class="foot" id="envNote"></p>
+    </section>
+  </aside>
+</div>
+
+<script src="js/core.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/book.js"></script>
+<script src="js/log.js"></script>
+<script src="data/book.js" onerror="window.__noBook15=1"></script>
+<script src="data/book12.js" onerror="window.__noBook12=1"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>

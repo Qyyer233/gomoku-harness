@@ -1,0 +1,409 @@
+:root {
+  color-scheme: light dark;
+  --bg: #12100e;
+  --panel: #1c1917;
+  --panel2: #252220;
+  --line: #3a3532;
+  --ink: #ece7e1;
+  --ink-dim: #a49c94;
+  --accent: #d9a441;
+  --accent-soft: rgba(217, 164, 65, .14);
+  --good: #6fbf73;
+  --bad: #e06c5a;
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; }
+
+/* 必须放在所有布局规则之前并加 !important：
+   浏览器 UA 样式表里的 [hidden]{display:none} 属于 user-agent 来源，
+   任何作者样式（哪怕只是 .overlay{display:flex}）都会盖掉它，
+   导致 el.hidden = true 失效。 */
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font: 14px/1.55 "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px;
+  min-height: 100%;
+}
+
+/* ---------- 棋盘 ---------- */
+.boardWrap {
+  position: relative;
+  flex: 0 1 720px;
+  max-width: min(720px, calc(100vh - 48px));
+}
+
+#board {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .06);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* ---------- 侧栏 ---------- */
+.panel {
+  flex: 0 0 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.panel header h1 { font-size: 19px; margin: 0; letter-spacing: .02em; }
+.panel header .sub { margin: 4px 0 0; color: var(--ink-dim); font-size: 12px; }
+
+section {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+
+/* 状态 */
+.turnRow { display: flex; align-items: center; gap: 9px; font-size: 15px; font-weight: 500; }
+.dot {
+  width: 15px; height: 15px; border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .18);
+  flex: none;
+}
+.dot.black { background: radial-gradient(circle at 34% 30%, #6a6a6a, #0c0c0c 70%); }
+.dot.white { background: radial-gradient(circle at 34% 30%, #ffffff, #c8c2ba 72%); }
+
+.engineLine {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--accent-soft);
+  border-left: 2px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  color: #f0dcb4;
+  font-size: 12.5px;
+  min-height: 34px;
+}
+
+.meters { display: flex; gap: 8px; margin-top: 10px; }
+.meter {
+  flex: 1;
+  background: var(--panel2);
+  border-radius: 8px;
+  padding: 7px 4px;
+  text-align: center;
+}
+.meter span { display: block; font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.meter i { display: block; font-style: normal; font-size: 10.5px; color: var(--ink-dim); margin-top: 1px; }
+
+/* 控件 */
+.controls { display: flex; flex-direction: column; gap: 10px; }
+.row { display: flex; gap: 8px; }
+
+.btn {
+  flex: 1;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  background: var(--panel2);
+  color: var(--ink);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, transform .08s;
+}
+.btn:hover { background: #2f2b28; border-color: #4a4441; }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .45; cursor: default; transform: none; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #2a1e08; font-weight: 600; }
+.btn.primary:hover { background: #e8b355; }
+
+.field { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; }
+.field select {
+  flex: 1;
+  max-width: 190px;
+  padding: 7px 9px;
+  background: var(--panel2);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+}
+
+.check { display: flex; align-items: flex-start; gap: 9px; font-size: 13px; cursor: pointer; }
+.check input { margin-top: 3px; accent-color: var(--accent); flex: none; }
+.check i { display: block; font-style: normal; font-size: 11px; color: var(--ink-dim); }
+
+/* 棋谱 */
+.recHead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+.recHead h2 { font-size: 13px; margin: 0; color: var(--ink-dim); font-weight: 500; letter-spacing: .08em; }
+.link { background: none; border: 0; color: var(--accent); font: inherit; font-size: 12px; cursor: pointer; padding: 0; }
+
+.moveList {
+  margin: 0; padding: 0; list-style: none;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+  max-height: 168px; overflow-y: auto;
+  font-variant-numeric: tabular-nums;
+}
+.moveList li {
+  font-size: 11.5px;
+  padding: 3px 5px;
+  border-radius: 5px;
+  background: var(--panel2);
+  color: var(--ink-dim);
+  white-space: nowrap;
+}
+.moveList li.b { color: #f2ede7; }
+.moveList li.last { outline: 1px solid var(--accent); color: var(--accent); }
+
+@media (max-width: 1040px) {
+  /* 竖排之后 justify-content:center 的含义从"水平居中"变成"垂直居中"，
+     配上 min-height:100% 会在上下留出大片空白，所以两个都要改。 */
+  .app {
+    flex-direction: column; align-items: center;
+    justify-content: flex-start; min-height: auto;
+    padding: 14px;
+  }
+  /* **flex: none 是关键。** 原来的 flex: 0 1 720px 在竖排时把 720px 当成高度，
+     于是棋盘下面多出几百像素的空白 —— 实战里"棋盘下面全是黑的"就是它。 */
+  .boardWrap { flex: none; width: 100%; max-width: min(640px, 92vw); }
+  .panel { flex: none; width: 100%; max-width: min(640px, 92vw); }
+  .moveList { max-height: 120px; }
+}
+
+/* ---------- 结算横幅（不挡棋盘，复盘不受影响） ---------- */
+.resultBar {
+  margin: -2px 0 10px;
+  padding: 9px 11px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  background: var(--panel2);
+  border-left: 3px solid var(--ink-dim);
+}
+.resultBar { margin: 12px 0 0; text-align: left; }
+.resultBar.win { border-left-color: var(--good); color: #cfe9d1; }
+.resultBar.lose { border-left-color: var(--bad); color: #f2cdc5; }
+
+/* ---------- 开局区 ---------- */
+.start { display: flex; flex-direction: column; gap: 9px; }
+.seatInfo { font-size: 12px; color: var(--ink-dim); text-align: center; }
+
+/* ---------- AI 着法：对局时只需要看这一块 ---------- */
+.answer { text-align: center; padding: 16px 14px 14px; }
+.answerHead {
+  font-size: 11px; letter-spacing: .16em; color: var(--ink-dim);
+  text-transform: uppercase; margin-bottom: 4px;
+}
+.aiMove {
+  font-size: 54px;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: .04em;
+  font-variant-numeric: tabular-nums;
+  color: #4a443e;
+  transition: color .15s;
+}
+.aiMove.live { color: var(--accent); }
+.aiMeta { font-size: 11.5px; color: var(--ink-dim); margin-top: 5px; min-height: 17px; line-height: 1.5; }
+
+.foot { font-size: 11px; color: var(--ink-dim); margin: 2px 0 0; line-height: 1.55; }
+
+/* ---------- 录入框 ---------- */
+.entry { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.entry span { color: var(--ink-dim); flex: none; }
+.entry input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  background: var(--panel2);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  transition: border-color .15s, background .15s;
+}
+.entry input:focus { outline: none; border-color: var(--accent); }
+.entry input.bad { border-color: var(--bad); background: rgba(224, 108, 90, .12); }
+.entry input:disabled { opacity: .45; }
+.entryHint { font-size: 11px; color: var(--ink-dim); margin-top: -4px; line-height: 1.5; }
+
+/* ---------- 复盘导航 ---------- */
+.review { display: flex; flex-direction: column; gap: 9px; }
+.recHead .spacer { flex: 1; }
+.navRow { display: flex; align-items: center; gap: 6px; }
+.navBtn {
+  flex: 1;
+  padding: 6px 0;
+  background: var(--panel2);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.navBtn:hover:not(:disabled) { background: #2f2b28; }
+.navBtn:disabled { opacity: .35; cursor: default; }
+.navPos {
+  flex: 0 0 66px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.moveList li { cursor: pointer; }
+.moveList li:hover { background: #38332f; }
+.moveList li.future { opacity: .38; }
+
+/* 最后一手的准星图例。颜色必须和 ui.js 里 markLast() 的两个值保持一致 */
+.legend {
+  display: flex;
+  gap: 14px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #6b6257;
+}
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+/* 和 ui.js 的 markLast() 一样做成发光的小环，颜色必须两边一致 */
+.legend .mk {
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  border: 2px solid #2bff9e;
+  box-shadow: 0 0 6px #2bff9e, 0 0 2px #2bff9e inset;
+}
+.legend .mk.opp {
+  border-color: #ffab3d;
+  box-shadow: 0 0 6px #ffab3d, 0 0 2px #ffab3d inset;
+}
+
+/* 日志落盘状态。没有它的时候，日志悄悄退回 localStorage 用户完全看不出来 */
+.logInfo { font-size: 11px; color: #8a8178; margin-left: 8px; }
+.logInfo.bad { color: #c2703a; }
+
+/* 一行只放一个按钮时让它占满，手指好点 */
+.btn.wide { flex: 1 1 100%; }
+/* 暂停时大字区域变个颜色 —— 这是「引擎没在动」的唯一提示，不能低调 */
+.aiMove.paused { color: var(--accent); }
+
+/* ---------- 自定义摆局 ---------- */
+.setupBar {
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 10px;
+  background: rgba(230, 168, 74, .06);
+}
+.setupHint { font-size: 12px; color: var(--ink-dim); line-height: 1.5; }
+.setupHint b { color: var(--accent); }
+.setupTurn {
+  font-size: 15px; font-weight: 600; color: var(--ink);
+  text-align: center; padding: 4px 0 2px;
+}
+
+/* ---------- 手机端（≤700px） ----------
+ *
+ * **那片黑色空白的原因是 `.boardWrap { flex: 0 1 720px }`。**
+ * flex 简写里的 720px 是 flex-basis，它跟着主轴走：横排时是宽度（对的），
+ * 竖排时变成**高度** —— 于是 boardWrap 被撑到 720px 高，里面的棋盘只有 390px，
+ * 下面几百像素全是空的。只改 width/max-width 完全没用，必须 `flex: none`。
+ *
+ * **排版按实际使用频率。** 用户在手机上只碰四样：看 AI 的着法、录入对手的着法、
+ * 上一步/下一步纠错、重开一局。第一版把前两样提上来了，但它们太占地方，
+ * 后两样还是被挤出屏幕。按钮可以做小，所以这一版砍掉纯装饰的元素、
+ * 压字号和间距，目标是**四样全部落在第一屏**。
+ */
+@media (max-width: 700px) {
+  html, body { height: auto; min-height: 100%; }
+  .app {
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;   /* 竖排时 center 会变成垂直居中，留出大片空白 */
+    min-height: auto;
+    padding: 8px 8px 24px;
+    gap: 6px;
+  }
+  .boardWrap { flex: none; width: 100%; max-width: 100%; }
+  .panel { width: 100%; max-width: 100%; gap: 6px; }
+
+  /* 按使用频率重排（数字越小越靠前）。
+     顺序是用户点的次数排出来的：看着法 -> 暂停改棋盘 -> 录入 -> 重开 -> 回退。 */
+  #secSetup  { order: -6; }   /* 摆局操作条：只在摆局时出现，出现时必须最上面 */
+  #secAnswer { order: -5; }   /* AI 给的着法 */
+  #secPause  { order: -4; }   /* 思考开关 —— 棋盘正下方，手指最容易够到 */
+  #secEntry  { order: -3; }   /* 录入 + 悔棋 */
+  #secStart  { order: -2; }   /* 我方先走 / 对手先走 */
+  #secReview { order: -1; }   /* 上一步 / 下一步 */
+  #secExtra  { order: 9; }    /* 自定义摆局：用得少，沉到底 */
+
+  /* 思考开关做大一圈。它和别的按钮不一样 —— 按错的代价是「引擎白想一手」
+     或者「干等一手永远不来的棋」，都会直接吃掉读秒。 */
+  #secPause { padding: 0; border: none; background: none; }
+  #secPause .btn { min-height: 52px; font-size: 17px; font-weight: 600; }
+
+  /* ---- 压缩：省下的每一行都是为了让后两块进第一屏 ---- */
+
+  /* 「AI 的着法」这行标题是废话，下面那个大字已经说明一切 */
+  .answerHead { display: none; }
+  .answer { padding: 8px 10px 9px; }
+  .aiMove { font-size: 30px; line-height: 1.15; }
+  .aiMeta { font-size: 11px; }
+
+  /* 输入框的 placeholder 已经写了「如 h8 回车」，下面那行提示是重复的 */
+  .entryHint { display: none; }
+  .entry input { font-size: 16px; padding: 9px 10px; }   /* 16px：iOS 聚焦时才不会放大整页 */
+  .entry span { font-size: 14px; }
+
+  /* 按钮做小（体积不重要），但仍高于误触下限 */
+  .btn { padding: 8px 8px; font-size: 14px; min-height: 36px; }
+  /* 摆局的按钮要比别的大一圈：摆局时全靠戳屏幕，误触代价高（摆错要退） */
+  .setupBar .btn { min-height: 44px; font-size: 15px; }
+  #secExtra .btn { min-height: 36px; font-size: 13px; opacity: .85; }
+  .setupBar .btn.primary { min-height: 48px; font-size: 16px; }
+  .setupHint { font-size: 12px; }
+  .setupTurn { font-size: 16px; }
+  .navBtn { min-width: 44px; min-height: 36px; font-size: 16px; padding: 0; }
+  .row { gap: 6px; }
+  .controls { gap: 8px; }
+  .start { gap: 6px; }
+  .review { gap: 6px; }
+
+  /* 这些在手机上只占地方 */
+  .panel header { display: none; }
+  .seatInfo { font-size: 11px; }
+  /* **棋谱列表和执色提示在手机上直接不显示。**
+     棋盘上已经画着所有子和最后一手的标记，这个列表是纯冗余；
+     而它加上标题栏占掉近 100px —— 正好是「上一步/下一步」进不了第一屏的那 58px。
+     手机上的取舍很明确：宁可少看一个列表，也要让四个常用操作免滚动。 */
+  .moveList { display: none; }
+  .recHead { display: none; }
+  .seatInfo { display: none; }
+  .recHead { font-size: 11px; }
+
+  /* 设置项全部沉到最后，开局设一次就不再动 */
+  .field { font-size: 13px; }
+  .field select { font-size: 15px; padding: 8px; min-height: 38px; max-width: none; }
+  .check { min-height: 34px; font-size: 13px; }
+}
+
+/* 触屏：去掉 hover 态 —— 手机上 hover 会"粘"在最后点过的按钮上，
+   看着像某个按钮一直被选中。 */
+@media (hover: none) {
+  .btn:hover { background: var(--panel2); border-color: var(--line); }
+  .btn.primary:hover { background: var(--accent); }
+  .navBtn:hover { background: var(--panel2); }
+}

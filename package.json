@@ -1,0 +1,45 @@
+{
+  "name": "gomoku-harness",
+  "version": "1.0.0",
+  "description": "五子棋引擎的外层框架：开局库、实战记忆、对手回合预判、用时控制与对局界面，让 Rapfi 的棋力在快棋里完整发挥",
+  "license": "GPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Qyyer233/gomoku-harness.git"
+  },
+  "private": true,
+  "scripts": {
+    "test": "node tools/test-core.js && node tools/test-cache.js && node tools/test-engine.js && node tools/test-block.js && node tools/test-size.js && node tools/test-book.js && node tools/test-sprt.js && node tools/test-log.js && node tools/test-ponder.js && node tools/test-parallel.js && node tools/test-rapfi.js && node tools/test-memo.js && node tools/test-swindle.js && node tools/test-ui.js && node tools/test-move-timeout.js",
+    "selfplay": "node tools/selfplay.js --games 350 --seed 1",
+    "book": "node tools/build-book.js",
+    "stats": "node tools/book-stats.js",
+    "arena": "node tools/arena.js --a hard --b normal --games 20",
+    "start": "node tools/serve.js",
+    "test:vct": "node tools/test-vct.js",
+    "blunders": "node tools/blunder-scan.js --games 10",
+    "test:defense": "node tools/test-defense.js --games 16 --level master",
+    "import:rif": "node tools/import-rif.js",
+    "book12": "node tools/build-book.js --size 12 --records data/records12 --out data/book12.json",
+    "openings": "node tools/gen-openings.js",
+    "logs": "node tools/logs.js",
+    "review": "node tools/review.js",
+    "audit": "node tools/audit.js",
+    "bench": "node tools/bench.js",
+    "sprt": "node tools/arena.js --sprt --games 400",
+    "throttle": "node tools/throttle.js",
+    "learn": "node tools/learn.js",
+    "rapfi:info": "node tools/rapfi-weight.js info engines/rapfi/mix9svqfreestyle_bsmix.bin.lz4",
+    "rapfi:verify": "node tools/rapfi-verify.js --games 120 --ms 800 --size 12 --conc 8",
+    "book:rapfi": "node tools/book-rapfi.js --size 12 --ms 8000 --depth 8 --width 3",
+    "gomocup:fetch": "node tools/fetch-gomocup.js 2026 2025 2024",
+    "gomocup:import": "node tools/import-gomocup.js --div Freestyle --size 15 --out data/records/gomocup-freestyle15.txt",
+    "awake": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/stay-awake.ps1",
+    "book:ab": "node tools/book-ab.js --size 15 --games 300 --ms 1200 --conc 5",
+    "finish": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/finish.ps1",
+    "book:hitrate": "node tools/book-hitrate.js --games 30 --size 12 --topk 8 --conc 5",
+    "book:coverage": "node tools/book-coverage.js --size 12 --plies 8 --radius 4"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}

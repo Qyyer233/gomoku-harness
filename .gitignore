@@ -1,0 +1,12 @@
+logs/
+
+# Gomocup 原始对局包（每个 35~76MB，合计 281MB）。
+# 随时可以 `npm run gomocup:fetch` 重新下载；导入结果已经在 data/records/ 里。
+data/gomocup/
+
+node_modules/
+
+# 开局库的手工备份：留在本地，不进仓库（历史版本在 git 里都有）
+backup/
+data/backup/
+
